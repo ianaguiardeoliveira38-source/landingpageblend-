@@ -217,7 +217,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="ornament">
     <div class="orn-line"></div><div class="orn-diamond"></div><div class="orn-line"></div>
   </div>
-  <button class="btn-main" onclick="goTo('screen-quiz')"
+  <button class="btn-main" onclick="_push('quiz_inicio'); goTo('screen-quiz')"
     style="margin-top:.5rem;opacity:0;animation:fadeUp .8s ease 2.2s forwards;">
     Já que estou aqui...
   </button>
@@ -298,7 +298,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <canvas id="wheelCanvas" width="280" height="280"></canvas>
     </div>
   </div>
-  <button class="btn-main" id="btnSpin" onclick="spinWheel()">Girar agora</button>
+  <button class="btn-main" id="btnSpin" onclick="_push('roleta_girou'); spinWheel()">Girar agora</button>
 </div>
 
 <!-- TELA 5: PRÊMIO -->
@@ -320,11 +320,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
   <p class="prize-hint">📲 Para resgatar, envie um print desta tela para a gente.</p>
   <div class="prize-buttons">
-    <a href="https://www.instagram.com/blendeeburguer?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" class="btn-order">Conhecer mais</a>
+    <a href="https://www.instagram.com/blendeeburguer?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" class="btn-order" onclick="_push('instagram_clicou')">Conhecer mais</a>
   </div>
 </div>
 
 <script>
+// Tempo de início para calcular duração
+const _startTime = Date.now();
+
+function _push(event, params) {
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push(Object.assign({event: event}, params || {}));
+}
+
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   setTimeout(() => {
@@ -337,13 +345,16 @@ function nextStep(id) {
   document.getElementById(id).classList.add('active');
 }
 function goToReveal() {
+  _push('quiz_concluido');
   goTo('screen-reveal');
   setTimeout(() => {
     const video = document.getElementById('reveal-video');
     video.classList.add('active');
     video.currentTime = 0;
     video.play().catch(() => {});
+    _push('video_iniciou');
     video.onended = function() {
+      _push('video_terminou');
       setTimeout(() => {
         document.getElementById('logoReveal').classList.add('show');
       }, 500);
@@ -414,6 +425,7 @@ function spinWheel() {
 function showPrize(prize) {
   const name=prize.name.replace('\n',' ');
   document.getElementById('prizeResult').textContent=name;
+  _push('premio_revelado', {premio: name});
   setTimeout(()=>{
     goTo('screen-prize');
     setTimeout(()=>{
@@ -437,6 +449,12 @@ function launchConfetti() {
   }
   setTimeout(()=>container.innerHTML='',6000);
 }
+
+// Tempo na página ao sair
+window.addEventListener('beforeunload', function() {
+  const segundos = Math.round((Date.now() - _startTime) / 1000);
+  _push('tempo_na_pagina', {segundos: segundos});
+});
 </script>
 </body>
 </html>
